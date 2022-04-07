@@ -1,0 +1,94 @@
+import re
+import regex
+
+with open(r'hamlet_act1.txt') as f:
+    lines = f.read()
+
+# Regular Expression to Mine the Text
+hamlet_txt =regex.findall(r"'?[A-Z][a-z][^A-Z\s\s][A-Za-z\s,\"'}\[)(:;-]*\n*(?=\.|\?|!)[\.|\?|\!\]\[\s|\--]|'?[A-Z] [^A-Z\s\s][A-Za-z\s,\"'}\[)(:;-]*\n*(?=\.|\?|!)[\.|\?|\!\]\[\s|\--]", lines)
+print(len(hamlet_txt))
+
+# Our Regular Expression captures a total of 511 lines
+for line in hamlet_txt:
+    print(line)
+    print("------------")
+    
+print(hamlet_txt)
+
+# We now proceed to use the NLTK package to tokenize and tag our text, and create bigrams
+import nltk
+nltk.help.upenn_tagset()
+from nltk.tokenize import sent_tokenize, word_tokenize
+
+# Deleting of unnecessary punctuation inside sentences, to capture all pronoun/noun and verb patterns
+
+punc = ';\':,'
+hamlet_txt_no_punc = []
+for line in hamlet_txt:
+    for element in line:
+        if element in punc:
+            line = line.replace(element, "")
+    hamlet_txt_no_punc.append(line)
+
+print(hamlet_txt_no_punc)
+
+# Visualizing each step before proceeding
+
+tokenized_txt = []
+for line in hamlet_txt_no_punc:
+    line_tokenized = nltk.word_tokenize(line)
+    tokenized_txt.append(line_tokenized)
+    
+tagged_txt = []
+for i in tokenized_txt:
+    tagged_txt.append(nltk.pos_tag(i))
+
+print(tagged_txt)
+
+# Tokenizing our text by word, adding tags to our tokenized text and creating the corresponding bigrams
+
+tkn_txt = []
+for line in hamlet_txt_no_punc:
+    line_tokenized = nltk.word_tokenize(line)
+    new_line = []
+    for i in line_tokenized:
+        i = i.lower()
+        new_line.append(i)
+    tagged_sent = nltk.pos_tag(new_line)
+    word_tag_pairs = list(nltk.bigrams(tagged_sent))
+    tkn_txt.append(nltk.bigrams(tagged_sent))
+
+    
+bigram_lst=[]
+
+for x in range(len(tkn_txt)):
+    for a, b in tkn_txt[x]:
+        if (a[1].startswith('N') or a[1].startswith('PRP')) and b[1].startswith('V'):
+            bigram_lst.append([a,b])
+
+print(bigram_lst)
+
+# Creating a dictionary object to store the bigrams and its frequency
+
+y_dict = {}
+
+for i in bigram_lst:
+    bigram_lst.count(i)
+    my_dict[str(i)] = bigram_lst.count(i)
+    
+    
+  # Sorting the created dictionary by frequency in descending order
+  import operator
+
+sorted_dict = dict(sorted(my_dict.items(), key = operator.itemgetter(1), reverse =True))
+
+for key in sorted_dict:
+    print(key, sorted_dict[key])
+    
+  # Getting the top 10 frequent bigrams and writing them in a txt file
+  
+  first10pairs = {k: sorted_dict[k] for k in list(sorted_dict)[:10]}
+  with open("hamlet_output.txt", 'w') as f: 
+    for key, value in first10pairs.items(): 
+        f.write('%s:%s\n' % (key, value))
+  
